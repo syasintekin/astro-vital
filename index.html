@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ASTRO-VITAL</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f2f5fb;--pn:#fff;--tx:#14203a;--mu:#5b6885;--ln:#d7deed;--ac:#4f5fd6;
+--g:#10b981;--b:#3b82f6;--y:#f59e0b;--r:#ef4444;box-sizing:border-box;
+padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a111f;--pn:#131c30;--tx:#e6ecf8;--mu:#93a0bf;--ln:#243252;--ac:#a5b4fc}}
+:root[data-theme="dark"]{--bg:#0a111f;--pn:#131c30;--tx:#e6ecf8;--mu:#93a0bf;--ln:#243252;--ac:#a5b4fc}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+header{padding:18px 20px 8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+h1{font-size:22px;margin:0;font-weight:600;letter-spacing:.02em}
+h1 small{display:block;font-size:12px;color:var(--mu);font-weight:400;letter-spacing:0}
+h2{font-size:15px;margin:0 0 10px;font-weight:600;color:var(--ac)}
+.xp{font-size:13px;color:var(--mu);text-align:right}
+.bar{height:8px;border-radius:4px;background:var(--ln);overflow:hidden;margin-top:4px;min-width:160px}
+.bar i{display:block;height:100%;background:var(--ac);width:0;transition:width .4s}
+.modes{display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 10px}
+.modes button{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:20px;padding:7px 13px;font:inherit;font-size:13px;cursor:pointer}
+.modes button[aria-pressed=true]{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+#alert{margin:0 20px 10px;padding:10px 14px;border-radius:8px;background:var(--r);color:#fff;font-weight:600;display:none}
+#modeNote{margin:0 20px 12px;color:var(--mu);font-size:13px}
+main{display:grid;grid-template-columns:260px 1fr 320px;gap:14px;padding:0 20px 24px}
+@media(max-width:980px){main{grid-template-columns:1fr}}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:14px}
+svg.body{width:100%;max-height:430px}
+svg.body .reg{cursor:pointer;stroke:var(--tx);stroke-opacity:.35;stroke-width:1.5;transition:fill .3s}
+svg.body .reg:hover,svg.body .reg.sel{stroke-opacity:1;stroke-width:3}
+svg.body .reg:focus-visible{outline:none;stroke-opacity:1;stroke-width:3;stroke:var(--ac)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--mu);margin-top:8px}
+.legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;background:var(--c)}
+.pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff}
+.m{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--ln)}
+.m label{font-size:13px;color:var(--mu)}
+.m input[type=range]{grid-column:1;width:100%;accent-color:var(--ac)}
+.m output{grid-row:1;grid-column:2;font-weight:600}
+.m .pill{grid-row:2;grid-column:2}
+.info{display:grid;gap:8px;margin-top:10px;font-size:14px}
+.info b{color:var(--ac);font-weight:600}
+.col{display:grid;gap:14px;align-content:start}
+button.act{background:var(--ac);color:var(--bg);border:0;border-radius:8px;padding:8px 12px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;margin:4px 6px 4px 0}
+button.act.alt{background:transparent;color:var(--tx);border:1px solid var(--ln)}
+#rt{height:70px;border-radius:8px;display:grid;place-items:center;background:var(--ln);color:var(--tx);cursor:pointer;user-select:none;margin-top:6px;font-weight:600;text-align:center}
+video{width:100%;border-radius:8px;display:none;margin-top:8px}
+.task{display:flex;gap:8px;align-items:center;padding:5px 0;font-size:14px}
+.badges span{display:inline-block;margin:3px 4px 0 0;padding:3px 9px;border-radius:12px;border:1px solid var(--ln);font-size:12px;color:var(--mu)}
+.badges span.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+.fine{font-size:12px;color:var(--mu);padding:0 20px 24px}
+</style>
+</head>
+<body>
+<header>
+ <h1>ASTRO-VITAL<small>Astronot sağlığı için çok modlu dijital ikiz ve karar destek</small></h1>
+ <div class="xp"><span id="xpTxt">Biyo-Kalkan Puanı: 0</span><div class="bar"><i id="xpBar"></i></div></div>
+</header>
+<div class="modes" id="modes" role="group" aria-label="Görev ortamı"></div>
+<div id="alert" role="alert"></div>
+<p id="modeNote"></p>
+<main>
+ <section class="card">
+  <h2>Dijital ikiz</h2>
+  <svg class="body" viewBox="0 0 200 420" role="group" aria-label="Tıklanabilir insan vücudu">
+   <g id="reg">
+    <circle class="reg" id="r-head" data-r="head" cx="100" cy="46" r="34" tabindex="0" role="button" aria-label="Baş ve Beyin"/>
+    <ellipse class="reg" id="r-eyes" data-r="eyes" cx="100" cy="44" rx="22" ry="9" tabindex="0" role="button" aria-label="Gözler ve Optik Sinir" transform="translate(0,2)"/>
+    <path class="reg" id="r-lung" data-r="lung" d="M62 98h34v76H70q-12-30-8-76zM104 98h34q4 46-8 76h-26z" tabindex="0" role="button" aria-label="Akciğer ve Bağışıklık"/>
+    <path class="reg" id="r-heart" data-r="heart" d="M88 124q12-12 24 0 8 14-12 30-20-16-12-30z" tabindex="0" role="button" aria-label="Kalp ve Damar"/>
+    <path class="reg" id="r-msk" data-r="msk" d="M62 180h76l6 40-14 4v150h-26V240h-6v134H72V224l-14-4zM56 100l-30 90 14 6 28-70zM144 100l30 90-14 6-28-70z" tabindex="0" role="button" aria-label="Kas-İskelet ve Kemik"/>
+   </g>
+  </svg>
+  <div class="legend"><span style="--c:var(--g)">Optimal</span><span style="--c:var(--b)">Rutin ölçüm</span><span style="--c:var(--y)">Öz-bakım</span><span style="--c:var(--r)">Kritik</span></div>
+ </section>
+
+ <section class="card" aria-live="polite">
+  <h2 id="rName"></h2>
+  <span class="pill" id="rPill"></span>
+  <div id="metrics"></div>
+  <div class="info">
+   <div><b>Uzay riski:</b> <span id="rRisk"></span></div>
+   <div><b>Talimat:</b> <span id="rInstr"></span></div>
+   <div><b>Karşı tedbir:</b> <span id="rCounter"></span></div>
+  </div>
+ </section>
+
+ <div class="col">
+  <section class="card">
+   <h2>Veri girişi</h2>
+   <button class="act" id="btnSim">Bio-Monitor akışı: kapalı</button>
+   <button class="act alt" id="btnSPE">Güneş fırtınası simüle et</button>
+   <button class="act alt" id="btnCam">Kamera ile nabız (rPPG)</button>
+   <video id="vid" playsinline muted></video>
+   <canvas id="cv" width="48" height="48" hidden></canvas>
+   <div id="camMsg" class="fine" style="padding:6px 0 0"></div>
+   <div id="rt" role="button" tabindex="0">Reaksiyon testi için tıkla</div>
+   <div id="rtMsg" class="fine" style="padding:6px 0 0">Tepki süresi pasif nöro-bilişsel gösterge olarak kullanılır.</div>
+  </section>
+  <section class="card">
+   <h2>Görev Sağlığı Kalkanı</h2>
+   <div id="tasks"></div>
+   <div class="badges" id="badges"></div>
+   <div style="margin-top:12px;font-size:13px">Mars’a Kadar Yürüyüş (anonim ekip ilerlemesi)</div>
+   <div class="bar"><i id="marsBar"></i></div>
+   <div class="fine" id="marsTxt" style="padding:4px 0 0"></div>
+  </section>
+ </div>
+</main>
+<p class="fine">Eğitim ve yarışma prototipidir; tıbbi cihaz değildir. Eşikler ve radyasyon verisi simülasyon amaçlıdır, tanı veya tedavi yerine geçmez.</p>
+
+<script>
+const COL=['var(--g)','var(--b)','var(--y)','var(--r)'],LBL=['Optimal','Rutin ölçüm','Öz-bakım gerekli','Kritik'];
+const MODES={
+ leo:{n:'Uzay İstasyonu (LEO/ISS, 0 g)',note:'SANS, kemik kaybı ve mikrobiyal takibe odaklanır.',rad:[.05,.2],co2:[4000,7000]},
+ deep:{n:'Derin Uzay (Orion/Mars geçişi)',note:'CANS nötron verisi önceliklidir; güneş fırtınasında sığınak alarmı ve otonom tanı devreye girer.',rad:[.1,.5],co2:[4000,7000]},
+ surf:{n:'Gezegen/Ay Yüzeyi (1/6 g, 3/8 g)',note:'Vestibüler adaptasyon, regolit tozu (akciğer) ve EVA yorgunluğu izlenir.',rad:[.08,.3],co2:[3500,6000]},
+ rover:{n:'Basınçlı Rover / EVA',note:'DCS, hipoksi (SpO2), kıyafet içi CO2 ve EVARM radyasyon dozu gerçek zamanlı izlenir.',rad:[.05,.2],co2:[2500,4000]}};
+const lvl=(v,y,r,low)=>low?(v<r?3:v<y?2:0):(v>r?3:v>y?2:0);
+const M={
+ sleep:{n:'Uyku',u:'sa',v:7,a:0,z:12,s:.5,t:v=>lvl(v,6.5,5,1)},
+ rt:{n:'Reaksiyon süresi',u:'ms',v:280,a:150,z:700,s:5,t:v=>lvl(v,350,450)},
+ co2:{n:'Kabin CO2',u:'ppm',v:2500,a:400,z:10000,s:100,t:(v,m)=>lvl(v,m.co2[0],m.co2[1])},
+ onsd:{n:'Optik sinir kılıfı (ONSD)',u:'mm',v:5,a:3,z:8,s:.1,t:v=>lvl(v,5.5,6)},
+ hr:{n:'Kalp atış hızı',u:'bpm',v:72,a:35,z:160,s:1,t:v=>v>110||v<45?3:v>95||v<55?2:0},
+ hrv:{n:'HRV (rMSSD)',u:'ms',v:50,a:5,z:120,s:1,t:v=>lvl(v,30,15,1)},
+ sbp:{n:'Sistolik kan basıncı',u:'mmHg',v:120,a:80,z:200,s:1,t:v=>lvl(v,140,160)},
+ spo2:{n:'SpO2',u:'%',v:97,a:80,z:100,s:1,t:v=>lvl(v,94,90,1)},
+ temp:{n:'Vücut sıcaklığı',u:'°C',v:36.7,a:35,z:40,s:.1,t:v=>lvl(v,37.5,38)},
+ rr:{n:'Solunum hızı',u:'/dk',v:15,a:8,z:35,s:1,t:v=>lvl(v,20,24)},
+ glu:{n:'Kan şekeri',u:'mg/dL',v:95,a:50,z:250,s:1,t:v=>v>180||v<70?3:v>125||v<80?2:0},
+ rad:{n:'Radyasyon (CANS)',u:'mSv/sa',v:.03,a:0,z:1,s:.01,t:(v,m)=>lvl(v,m.rad[0],m.rad[1])},
+ ared:{n:'ARED egzersiz (bugün)',u:'dk',v:60,a:0,z:150,s:5,t:v=>v<30?2:0}};
+const R={
+ head:{n:'Baş ve Beyin (Nöro-Bilişsel)',m:['sleep','rt','co2'],risk:'Sirkadiyen kayma, bilişsel yorgunluk, CO2 narkozu',ins:'Reaksiyon süreniz yavaşladı; 5 dk nefes ve ışık protokolü uygulayın.',cm:'Mavi ışık terapisi, kabin CO2 havalandırma kontrolü, 8 saat uyku'},
+ eyes:{n:'Gözler ve Optik Sinir',m:['onsd'],risk:'SANS (optik disk ödemi, glob düzleşmesi)',ins:'Adım adım kendi kendine göz ultrasonu çekim rehberini izleyin (12 MHz prob).',cm:'Uyluk manşonu (Thigh Cuff), LBNP seansı, B-kompleks takviyesi'},
+ heart:{n:'Kalp ve Damar (Toraks)',m:['hr','hrv','sbp'],risk:'Kardiyovasküler adaptasyon, aritmi, DCS embolisi',ins:'Kan basıncı manşonunu sol kola takın ve 30 sn hareketsiz bekleyin.',cm:'ARED aerobik egzersiz, sıvı/elektrolit yüklemesi, %100 O2 soluma'},
+ lung:{n:'Akciğer ve Bağışıklık',m:['spo2','rr','temp'],risk:'Hipoksi, latent virüs reaktivasyonu, enfeksiyon',ins:'Tükürük örneği kitapçığını kullanın; SpO2 %94 altındaysa maske kontrolü yapın.',cm:'Kabin basınç/O2 ayarı, antiviral protokol, izolasyon ve dinlenme'},
+ msk:{n:'Kas-İskelet ve Kemik İliği',m:['ared','glu','rad'],risk:'Osteopeni, kas atrofisi, insülin direnci, BFO radyasyon',ins:'Kan şekeri sınırdaysa direnç egzersizi ve düşük glisemik öğün seçin.',cm:'Günde 2 saat ARED squat/deadlift, D vitamini, radyasyon sığınağı'}};
+const TASKS=[['water','Günlük su hedefi'],['ared','2 saatlik ARED egzersizi'],['sleep','Uyku hedefi (7+ saat)'],['scan','Ultrason / kan şekeri ölçümü']];
+const BADGES=[[40,'Kalkan Çırağı'],[100,'Bio-Kalkan'],[160,'Vital Komutan']];
+let mode='leo',sel='head',S={xp:0,done:{}},V={};
+Object.keys(M).forEach(k=>V[k]=M[k].v);
+try{const s=JSON.parse(localStorage.getItem('av')||'null');if(s)S=s}catch(e){}
+const $=id=>document.getElementById(id);
+const st=k=>M[k].t(+V[k],MODES[mode]);
+const rst=id=>Math.max(...R[id].m.map(st));
+const fmt=(k,v)=>(M[k].s<1?(+v).toFixed(M[k].s<.05?2:1):Math.round(v))+' '+M[k].u;
+
+function build(){
+ $('modes').innerHTML=Object.entries(MODES).map(([k,m])=>`<button data-m="${k}" aria-pressed="${k==mode}">${m.n}</button>`).join('');
+ $('modes').querySelectorAll('button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;build();render()});
+ $('modeNote').textContent=MODES[mode].note;
+ $('metrics').innerHTML=R[sel].m.map(k=>{const d=M[k];return `<div class="m"><label for="i-${k}">${d.n}</label><output id="o-${k}"></output><input type="range" id="i-${k}" min="${d.a}" max="${d.z}" step="${d.s}" value="${V[k]}"><span class="pill" id="p-${k}"></span></div>`}).join('');
+ R[sel].m.forEach(k=>$('i-'+k).oninput=e=>{V[k]=+e.target.value;render()});
+ $('tasks').innerHTML=TASKS.map(([k,t])=>`<label class="task"><input type="checkbox" data-t="${k}" ${S.done[k]?'checked':''}> ${t}</label>`).join('');
+ $('tasks').querySelectorAll('input').forEach(c=>c.onchange=()=>{const k=c.dataset.t;if(c.checked&&!S.done[k]){S.xp+=20}else if(!c.checked&&S.done[k]){S.xp=Math.max(0,S.xp-20)}S.done[k]=c.checked;save();render()});
+}
+function save(){try{localStorage.setItem('av',JSON.stringify(S))}catch(e){}}
+function render(){
+ Object.keys(R).forEach(id=>{const e=$('r-'+id);e.style.fill=COL[rst(id)];e.classList.toggle('sel',id==sel)});
+ const r=R[sel],s=rst(sel);
+ $('rName').textContent=r.n;$('rPill').textContent=LBL[s];$('rPill').style.background=COL[s];
+ r.m.forEach(k=>{const o=$('o-'+k);if(!o)return;o.textContent=fmt(k,V[k]);const i=$('i-'+k);if(document.activeElement!==i)i.value=V[k];
+  const p=$('p-'+k);p.textContent=LBL[st(k)];p.style.background=COL[st(k)]});
+ $('rRisk').textContent=r.risk;
+ $('rInstr').textContent=s==0?'Parametreler optimal. Rutin ölçüm takvimine devam edin.':r.ins;
+ $('rCounter').textContent=s==0?'Önleyici rutin: '+r.cm:r.cm;
+ const al=$('alert'),ra=st('rad')==3;
+ if(ra||st('spo2')==3){al.style.display='block';
+  al.textContent=ra?(mode=='deep'?'Güneş fırtınası uyarısı: radyasyon sığınağına geçin. İletişim gecikmesinde otonom tanı motoru devrede.':'Kritik radyasyon düzeyi: korunaklı alana geçin ve uçuş doktorunu bilgilendirin.'):'Kritik SpO2: maske ve kabin O2 kontrolü yapın, uçuş doktoruna bildirin.'}
+ else al.style.display='none';
+ $('xpTxt').textContent='Biyo-Kalkan Puanı: '+S.xp;
+ $('xpBar').style.width=Math.min(100,S.xp/160*100)+'%';
+ $('badges').innerHTML=BADGES.map(([n,t])=>`<span class="${S.xp>=n?'on':''}">${t}</span>`).join('');
+ const mp=Math.min(100,31+S.xp*.05);$('marsBar').style.width=mp+'%';$('marsTxt').textContent='%'+mp.toFixed(1)+' tamamlandı (demo verisi)';
+}
+document.querySelectorAll('.reg').forEach(e=>{const go=()=>{sel=e.dataset.r;build();render()};e.onclick=go;e.onkeydown=ev=>{if(ev.key=='Enter'||ev.key==' '){ev.preventDefault();go()}}});
+
+/* Bio-Monitor simülasyonu */
+let sim=null;
+const walk=(k,d,lo,hi)=>{V[k]=Math.min(hi,Math.max(lo,+V[k]+(Math.random()-.5)*d));};
+$('btnSim').onclick=()=>{
+ if(sim){clearInterval(sim);sim=null;$('btnSim').textContent='Bio-Monitor akışı: kapalı';return}
+ $('btnSim').textContent='Bio-Monitor akışı: açık';
+ sim=setInterval(()=>{walk('hr',6,55,105);walk('spo2',1.2,94,99);walk('rr',2,12,19);walk('temp',.1,36.4,37.2);walk('hrv',6,35,70);walk('sbp',6,108,132);walk('rad',.01,.01,.06);render()},1000)};
+$('btnSPE').onclick=()=>{V.rad=Math.max(V.rad,MODES[mode].rad[1]+.15);render()};
+
+/* Kamera tabanlı rPPG (deneysel) */
+$('btnCam').onclick=async()=>{
+ const msg=$('camMsg'),vid=$('vid');
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+  vid.srcObject=stream;vid.style.display='block';await vid.play();
+  const cv=$('cv'),cx=cv.getContext('2d'),pts=[],t0=performance.now();
+  msg.textContent='Yüzünüzü ışıkta sabit tutun, 12 sn ölçülüyor...';
+  const tick=()=>{
+   const t=performance.now()-t0;
+   cx.drawImage(vid,vid.videoWidth*.3,vid.videoHeight*.25,vid.videoWidth*.4,vid.videoHeight*.4,0,0,48,48);
+   const d=cx.getImageData(0,0,48,48).data;let g=0;for(let i=1;i<d.length;i+=4)g+=d[i];
+   pts.push([t,g/(d.length/4)]);
+   if(t<12000)return requestAnimationFrame(tick);
+   stream.getTracks().forEach(x=>x.stop());vid.style.display='none';
+   const y=pts.map(p=>p[1]),sm=y.map((_,i)=>{let a=0,n=0;for(let j=Math.max(0,i-15);j<=Math.min(y.length-1,i+15);j++){a+=y[j];n++}return a/n}),
+    f=y.map((v,i)=>v-sm[i]);let c=0,last=-1e9;
+   for(let i=2;i<f.length-2;i++)if(f[i]>f[i-1]&&f[i]>=f[i+1]&&f[i]>f[i-2]&&f[i]>f[i+2]&&f[i]>0&&pts[i][0]-last>400){c++;last=pts[i][0]}
+   const bpm=Math.round(c/12*60);
+   if(bpm>=40&&bpm<=160){V.hr=bpm;msg.textContent='Tahmini nabız: '+bpm+' bpm (deneysel rPPG).';sel='heart';build();render()}
+   else msg.textContent='Ölçüm güvenilir değil. Daha iyi ışıkta tekrar deneyin.';
+  };tick();
+ }catch(e){msg.textContent='Kamera açılamadı. Tarayıcı iznini kontrol edin veya değeri elle girin.'}};
+
+/* Reaksiyon testi */
+let rs='idle',tm,t1,hist=[];
+const rt=$('rt'),rtGo=()=>{
+ if(rs=='idle'){rs='wait';rt.textContent='Yeşil olunca tıkla...';rt.style.background='var(--y)';
+  tm=setTimeout(()=>{rs='go';rt.textContent='ŞİMDİ';rt.style.background='var(--g)';t1=performance.now()},1000+Math.random()*2500)}
+ else if(rs=='wait'){clearTimeout(tm);rs='idle';rt.textContent='Çok erken. Tekrar dene.';rt.style.background='var(--ln)'}
+ else{const ms=Math.round(performance.now()-t1);hist=[...hist,ms].slice(-3);V.rt=Math.round(hist.reduce((a,b)=>a+b)/hist.length);
+  rs='idle';rt.style.background='var(--ln)';rt.textContent=ms+' ms. Tekrar için tıkla.';sel='head';build();render()}};
+rt.onclick=rtGo;rt.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();rtGo()}};
+build();render();
+</script>
+</body>
+</html>
